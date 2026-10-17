@@ -1,0 +1,443 @@
+/* Estilos de la página del juego */
+body{
+    background-color: #191b32;
+    font-family: 'Nunito', sans-serif;
+    margin: 0;
+    padding: 80px 0 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content:center;
+}
+
+.seccion-juego {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+/* Título del juego arriba */
+.juego-titulo {
+  color: #bd8d2f;
+  font-size: 1.4rem;
+  font-weight: 500;
+  margin-top: -20px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Contenedor relativo para posicionar los elementos flotantes en las esquinas */
+.juego-contenedor-principal {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Imagen del juego */
+.juego-imagen-wrapper {
+  width: 100%;
+  max-width: 600px; 
+  display: flex;
+  justify-content: center;
+}
+
+.juego-screenshot {
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  object-fit: contain;
+}
+
+
+/* Botones genéricos de iconos (esquinas superior e inferior derecha) */
+.juego-controles-top,
+.juego-controles-bottom-right {
+  position: absolute;
+  display: flex;
+  gap: 20px;
+  z-index: 10;
+}
+
+.juego-controles-top {
+  top: 2px;
+  right: 2px;
+}
+
+.juego-controles-bottom-right {
+  bottom: 2px;
+  right: 2px;
+}
+
+/* Estadísticas inferiores izquierdas */
+.juego-stats-bottom-left {
+  position: absolute;
+  bottom: 15px;
+  left: 15px;
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+}
+
+.stat-card {
+  background-color: #090b14;
+  border: 1px solid #222644;
+  border-radius: 10px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 90px;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  color: #92939f;
+  margin-bottom: 2px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 0.95rem;
+  color: #fff;
+  font-weight: 600;
+}
+
+
+
+/* Configuración general y de colores */
+
+
+.comments-section {
+  max-width: 1200px;
+  width: 94%;
+  margin: 0 auto;
+  background-color: #191b32;
+  padding: 20px;
+}
+
+/* Cabecera */
+.comments-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #bd8d2f;
+  margin-bottom: 24px;
+  font-family: 'Nunito', sans-serif;
+}
+
+.comments-header h2 {
+  font-size: 1.25rem;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Bloque de comentarios */
+.comment-block {
+  margin-bottom: 20px;
+}
+
+.comment-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #bd8d2f;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+
+.comment-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.comment-input, .comment-text {
+  flex-grow: 1;
+  background-color: #92939f;
+  border: 1px solid #7577a3;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  font-size: 0.95rem;
+  color: #1d1e2c;
+  outline: none;
+}
+
+.comment-input::placeholder {
+  color: #2b2b36;
+}
+
+.comment-text {
+  display: flex;
+  align-items: center;
+}
+
+/* Botones laterales (Enviar / Like) */
+.icono-btn {
+  background-color: #101225;
+  color: #bd8d2f;
+  border: none;
+  border-radius: 10px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.2s;
+}
+
+.icono-btn:hover {
+  background-color: #292C4A;
+}
+
+/* Estilo exclusivo solo para el botón de Me gusta */
+.like-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Ocultar el corazón por defecto */
+.like-btn .heart-icon {
+  display: none;
+  color: #e74c3c; /* Color rojo característico del corazón */
+  stroke: #e74c3c;
+}
+
+/* Al poner el mouse encima de .like-btn */
+.like-btn:hover .thumb-icon {
+  display: none; /* Oculta el pulgar */
+}
+
+.like-btn:hover .heart-icon {
+  display: block; /* Muestra el corazón */
+  animation: heartPop 0.4s ease-in-out forwards; /* Aplica la animación por porcentajes */
+}
+
+/* Animación Keyframe estrictamente con porcentajes (%) */
+@keyframes heartPop {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.8); /* Efecto rebote que se agranda un poquito */
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+
+/* Contenedor de las pestañas */
+.comment-filters {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row; /* Los pone uno al lado del otro */
+  gap: 10px;           /* Espacio entre los dos botones */
+  margin: 50px 0 20px 0;
+}
+
+/* Botones para filtrar comentarior */
+.comment-filters .filter-btn {
+  background-color: #101225;
+  color: #bd8d2f;
+  border: none;
+  border-radius: 10px;
+  padding: 0 16px;     /* Padding horizontal cómodo */
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  font-size: 15px;
+  white-space: nowrap; /* Evita que el texto se rompa hacia abajo */
+  transition: background-color 0.2s;
+}
+
+.comment-filters .filter-btn:hover {
+  background-color: #292C4A;
+}
+
+/* Contenedor de la lista de comentarios */
+.comments-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+/* Estilo y animación para cada comentario nuevo */
+.comment-item {
+  animation: slideInComment 0.4s ease-in-out forwards;
+}
+
+/* Animación keyframe con porcentajes solicitada */
+@keyframes slideInComment {
+  0% {
+    opacity: 0;
+    transform: translateY(20px); /* Empieza desplazado hacia abajo */
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0); /* Termina en su posición original */
+  }
+}
+
+/* Contenedor principal de la sección de descripción */
+.game-info-section {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 40px 20px;
+  background-color:  #191b32;
+  color: #bd8d2f;
+}
+
+.game-info-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+}
+
+
+/* Títulos con el color amarillo característico */
+.info-title {
+  color: #bd8d2f;
+  font-size: 1.35rem;
+  font-weight: 500;
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+/* Textos generales */
+.info-text {
+  color: #bd8d2f;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 30px;
+}
+
+/* Bloque inferior: Detalles y Redes */
+.details-share-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin-top: 40px;
+}
+
+.game-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-title {
+  color: #bd8d2f;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.detail-item {
+  color: #bd8d2f;
+  font-size: 0.9rem;
+}
+
+/* Bloque compartir */
+.share-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.share-title {
+  color: #bd8d2f;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.social-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.social-btn {
+  background-color: #101225;
+  color:#bd8d2f;
+  border: none;
+  border-radius: 10px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.social-btn:hover {
+  background-color: #1b2038;
+  border-color: #bd8d2f;
+}
+
+/* Lista de instrucciones (Cómo jugar) */
+.instructions-list {
+  list-style-type: disc;
+  padding-left: 20px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.instructions-list li {
+  color: #bd8d2f;
+  font-size: 0.93rem;
+  line-height: 1.5;
+}
+
+.instructions-list li strong {
+  color: #bd8d2f;
+  font-weight: 600;
+}
+
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.9rem;
+  color: #b0b3c6; 
+}
+
+.breadcrumbs a {
+  color: #00E5FF; 
+  text-decoration: none; 
+  transition: opacity 0.2s;
+}
+
+.breadcrumbs a:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+.breadcrumbs .current {
+  color: #f0d58a; 
+  font-weight: 600;
+}

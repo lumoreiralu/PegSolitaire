@@ -1,0 +1,201 @@
+.seccion-carrusel {
+  background-color: #191b32; /* El mismo violeta de tu fondo */
+  text-align: center;
+  width: 100%;
+  margin-bottom: 30px;
+  height: 260px;
+}
+
+.titulo-carrusel {
+  color: #b58034; /* Color dorado del título */
+  padding-top: 20px;
+  margin-bottom: 40px;
+  font-family:'nunito', sans-serif;
+  font-size: 20px;
+}
+
+/* El contenedor que recorta la fila */
+.carrusel-contenedor {
+  position: relative; /* Permite posicionar los botones encima */
+  max-width: 100%;  /* Ajusta según el ancho de tu Figma */
+  max-height: 222px;  /* Ajusta según el alto de tu Figma */
+  margin: 0 auto;
+  overflow: hidden;   /* 👈 Recorta las imágenes que se salen */
+}
+
+/* La fila larga con flex */
+.carrusel-track {
+  height: 150px;       /* Ocupa todo el alto del contenedor */
+  display: flex;
+  align-items: center; /* Centra las tarjetas para que al crecer no se corten arriba */
+  box-sizing: border-box; /* El padding-left cuenta dentro del ancho */
+  padding-left: 20px;  /* Espacio a la izquierda para que no quede pegado */
+  padding-right: 20px; /* Espacio a la derecha para la ultima tarjeta */
+  gap: 20px;          /* Espacio entre cada juego */
+  scroll-behavior: auto; /* El rebote lo anima el JS sobre scrollLeft, no el CSS */
+  overflow-x: auto;   /* Permite moverlo con el dedo en celulares */
+  overflow-y: hidden; /* Explicito: evita scrollbar vertical al hacer hover */
+  width: 100%;         /* Ocupa todo el ancho del contenedor */
+}
+
+/* Oculta la barra de scroll visual para que quede limpio */
+.carrusel-track::-webkit-scrollbar {
+  display: none;
+}
+
+/* Asegura que la tarjeta sea el marco de referencia */
+.juego-tarjeta {
+  position: relative;
+  flex: 0 0 120px;    /* No se comprime: mantiene 120x120 y desborda para scrollear */
+  width: 120px;       /* Mantén el tamaño que ya tenías */
+  height: 120px;
+  border-radius: 12px;
+  overflow: hidden;   /* 👈 Recorta la imagen al border-radius (la tarjeta es la que escala) */
+  cursor: pointer;
+
+  /* Transición al hacer hover sobre las tarjetas */
+  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Estilos de la imagen por defecto */
+.juego-tarjeta img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* El contenedor del texto (Capa oscura que sube) */
+.info-juego {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%; /* Cubre toda la tarjeta para hacer un efecto de sombra */
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.4) 60%, transparent 100%);
+  
+  display: flex;
+  align-items: flex-end; /* Sienta el texto abajo */
+  justify-content: center;
+  padding: 10px;
+  box-sizing: border-box;
+  
+  /* Estado inicial: oculto y empujado hacia abajo */
+  opacity: 0;
+  transform: translateY(10px);
+
+  /* Transición para el texto del juego al hacer hover */
+  transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+/* Estilo del texto del juego */
+.nombre-juego {
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-align: center;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+/* ==========================================
+   EFECTO HOVER (La magia al pasar el mouse)
+   ========================================== */
+
+/* 1. La tarjeta completa se agranda suavemente un 15% (scale 1.15) */
+.juego-tarjeta:hover {
+  transform: scale(1.20);
+  z-index: 5; /* Se dibuja por encima de las tarjetas vecinas */
+}
+
+/* 2. La capa del texto se vuelve visible y sube a su posición real */
+.juego-tarjeta:hover .info-juego {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* ==========================================
+   ESTILOS COMPARTIDOS PARA AMBOS CARRUSELES
+   ========================================== */
+
+/* 1. Base idéntica para los 4 botones (Forma, color, borde y flex) */
+.btn-carrusel-prev,
+.btn-carrusel-next,
+.btn-3d-nav {
+  position: absolute;
+  z-index: 10;
+
+  width: 75px;
+  height: 75px;
+
+  background-color: #d4a33b; /* El dorado/marrón que elegiste */
+  border: 3px solid #5c431c;
+  border-radius: 14px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  cursor: pointer;
+  padding: 0; /* Evita que el navegador le sume padding por defecto */
+}
+
+/* 2. Control de los SVG internos para que midan lo mismo */
+.btn-carrusel-prev img,
+.btn-carrusel-next img,
+.btn-3d-nav img {
+  width: 35px;
+  height: 35px;
+  display: block;
+}
+
+
+/* ==========================================
+   POSICIONAMIENTO ESPECÍFICO DE CADA UNO
+   ========================================== */
+
+/* --- Centrado vertical y hover: los botones de los dos carruseles se
+       alinean al 50% y comparten el mismo dorado y animacion --- */
+.btn-carrusel-prev,
+.btn-carrusel-next,
+.btn-3d-nav {
+  top: 50%;
+  transform: translateY(-50%);
+
+  /* Transición al hacer hover sobre las flechas */
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+/* El :active va DESPUES del :hover a proposito. Al mantener presionado el
+   boton matchean los dos a la vez, tienen la misma especificidad (0,2,0) y
+   gana el ultimo: si el :active va primero, el :hover lo pisa. */
+.btn-carrusel-prev:hover,
+.btn-carrusel-next:hover,
+.btn-3d-nav:hover {
+  background-color: #bd8d2f; /* Color dorado más intenso al pasar el mouse */
+  transform: translateY(-50%) scale(1.05); /* Pequeño efecto de zoom al pasar el mouse */
+}
+
+.btn-carrusel-prev:active,
+.btn-carrusel-next:active,
+.btn-3d-nav:active {
+  /* Efecto inmediato al presionar la flecha */
+  transition: none;
+  background-color: #a97a2b;
+  transform: translateY(-50%) scale(0.95);
+}
+
+.btn-carrusel-prev { left: 20px; }
+.btn-carrusel-next { right: 20px; }
+.btn-3d-nav.prev { left: 20px; }
+.btn-3d-nav.next { right: 20px; }
+
+/* Sin scroll en este lado: el JS desactiva la flecha */
+.btn-carrusel-prev:disabled,
+.btn-carrusel-next:disabled {
+  opacity: 0;
+  pointer-events: none; /* Evita que el mouse haga click en el boton cuando esta oculto */
+  cursor: default;
+}
+
+.nombre-juego {
+  color: #fff;
+  font-size: 0.8rem;
+  font-family: 'nunito', sans-serif;
+}
