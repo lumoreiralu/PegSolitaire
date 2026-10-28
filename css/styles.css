@@ -10,15 +10,7 @@ body{
     justify-content:center;
 }
 
-.seccion-juego {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
-}
+
 
 /* Título del juego arriba */
 .juego-titulo {
@@ -38,21 +30,6 @@ body{
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-/* Imagen del juego */
-.juego-imagen-wrapper {
-  width: 100%;
-  max-width: 600px; 
-  display: flex;
-  justify-content: center;
-}
-
-.juego-screenshot {
-  width: 100%;
-  height: auto;
-  border-radius: 16px;
-  object-fit: contain;
 }
 
 
@@ -440,4 +417,21 @@ body{
 .breadcrumbs .current {
   color: #f0d58a; 
   font-weight: 600;
+}
+
+
+.juego-canvas-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+#canvas {
+  display: block;
+  width: 100%;
+  max-width: 760px;
+  height: auto;
+  box-sizing: border-box;
 }
