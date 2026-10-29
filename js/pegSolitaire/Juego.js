@@ -3,19 +3,39 @@ class Juego {
         this.canvas = document.getElementById(canvasId); 
         this.ctx = this.canvas.getContext('2d'); 
 
-        // Geometría del tablero sobre el canvas 
-        this.cellSize = 77; // Ancho/alto de cada celda (px) 
-        this.offsetX = (this.canvas.width - (7 * this.cellSize)) / 2; // Centrado horizontal 
-        this.offsetY = (this.canvas.height - (7 * this.cellSize)) / 2; // Centrado vertical 
+        // Geometría medida sobre tablero.png (1024x1024) y sus 33 casillas en cruz.
+        const escalaX = this.canvas.width / 1024;
+        const escalaY = this.canvas.height / 1024;
+        this.cellWidth = 104.929 * escalaX;
+        this.cellHeight = 93.018 * escalaY;
+        this.offsetX = 147.321 * escalaX;
+        this.offsetY = 145.080 * escalaY;
 
         this.modelo = new Tablero(); 
         this.fichas = []; 
         this.fichaSeleccionada = null; 
         this.movimientosSugeridos = [];
+
+        // Elementos del menú de inicio, fin de partida y temporizador
+        this.menuInicio = document.getElementById('game-start-menu');
+        this.menuFin = document.getElementById('game-end-menu');
+        this.timerElemento = document.getElementById('game-timer');
+        this.mensajeFin = document.getElementById('game-end-message');
+        this.tiempoFinalElemento = document.getElementById('final-time');
+        this.btnPlay = document.getElementById('btn-play');
+        this.btnReplay = document.getElementById('btn-replay');
+
+        this.iniciado = false;
+        this.terminado = false;
+        this.segundos = 0;
+        this.intervaloTimer = null;
+        this.tiempoInicio = null;
+        this.rippleInicio = 0;
+        this.rippleRAF = null;
         
         this.bgImage = new Image();
         this.bgImage.onload = () => this.drawAll();
-        this.bgImage.src = 'assets/fichasytablero/tablero.jpg';
+        this.bgImage.src = 'assets/fichasytablero/tablero.png';
 
         this.skins = {
             pacman: 'assets/fichasytablero/pacman.png',
@@ -31,14 +51,15 @@ class Juego {
         };
         this.fichaImage.src = this.fichaImageSrc;
         this.inicializarFichasDesdeModelo();
+        this.actualizarTimer();
         this.drawAll();
         this.initEvents();
     }
 
     //traduce coordenadas en pixeles(x,y) a celda de la matrix {f,c}
     pixelAMatriz(x,y){
-        const c = Math.floor((x-this.offsetX)/this.cellSize);
-        const f = Math.floor((y - this.offsetY) / this.cellSize);
+        const c = Math.floor((x - this.offsetX) / this.cellWidth);
+        const f = Math.floor((y - this.offsetY) / this.cellHeight);
         if(f>=0 && f <7 && c>=0 && c<7){
             return {f,c};
     
@@ -49,14 +70,14 @@ class Juego {
     //traduce celda de la matriz{f,c} a coordenadas del centro en pixeles
     matrizAPixel(f,c){
         return{
-            x: this.offsetX + c * this.cellSize + this.cellSize / 2, 
-            y: this.offsetY + f * this.cellSize + this.cellSize / 2
+            x: this.offsetX + c * this.cellWidth + this.cellWidth / 2, 
+            y: this.offsetY + f * this.cellHeight + this.cellHeight / 2
         }
     }
 
     inicializarFichasDesdeModelo() { 
         this.fichas = []; 
-        const radio = this.cellSize * 0.21; 
+        const radio = Math.min(this.cellWidth, this.cellHeight) * 0.3; 
         for (let r = 0; r <7; r++) { 
             for (let c = 0; c < 7; c++) { 
                 if (this.modelo.matriz[r][c] === 1) { 
@@ -79,6 +100,115 @@ class Juego {
         if (skinSelector) { 
             skinSelector.addEventListener('change', (e) => this.cambiarSkin(e.target.value)); 
         } 
+        if (this.btnPlay) {
+            this.btnPlay.addEventListener('click', () => this.iniciarJuego());
+        }
+        if (this.btnReplay) {
+            this.btnReplay.addEventListener('click', () => this.reiniciarJuego());
+        }
+    }
+
+    iniciarJuego() {
+        this.iniciado = true;
+        this.terminado = false;
+        this.segundos = 0;
+        this.actualizarTimer();
+        if (this.menuInicio) {
+            this.menuInicio.hidden = true;
+        }
+        if (this.menuFin) {
+            this.menuFin.hidden = true;
+        }
+        this.iniciarTimer();
+    }
+
+    reiniciarJuego() {
+        this.detenerTimer();
+        this.detenerRipples();
+        this.modelo.reset();
+        this.fichaSeleccionada = null;
+        this.movimientosSugeridos = [];
+        this.inicializarFichasDesdeModelo();
+        this.drawAll();
+        this.iniciarJuego();
+    }
+
+    iniciarTimer() {
+        this.detenerTimer();
+        this.tiempoInicio = Date.now();
+        this.intervaloTimer = setInterval(() => {
+            this.segundos = Math.floor((Date.now() - this.tiempoInicio) / 1000);
+            this.actualizarTimer();
+        }, 1000);
+    }
+
+    detenerTimer() {
+        if (this.intervaloTimer) {
+            clearInterval(this.intervaloTimer);
+            this.intervaloTimer = null;
+        }
+    }
+
+    actualizarTimer() {
+        if (this.timerElemento) {
+            this.timerElemento.textContent = `Tiempo: ${this.formatearTiempo(this.segundos)}`;
+        }
+    }
+
+    formatearTiempo(segundos) {
+        const minutos = Math.floor(segundos / 60).toString().padStart(2, '0');
+        const resto = (segundos % 60).toString().padStart(2, '0');
+        return `${minutos}:${resto}`;
+    }
+
+    iniciarRipples() {
+        this.rippleInicio = performance.now();
+        if (this.rippleRAF !== null) {
+            return;
+        }
+        const animar = () => {
+            if (this.movimientosSugeridos.length === 0) {
+                this.rippleRAF = null;
+                return;
+            }
+            this.drawAll();
+            this.rippleRAF = requestAnimationFrame(animar);
+        };
+        this.rippleRAF = requestAnimationFrame(animar);
+    }
+
+    detenerRipples() {
+        if (this.rippleRAF !== null) {
+            cancelAnimationFrame(this.rippleRAF);
+            this.rippleRAF = null;
+        }
+    }
+
+    finalizarJuego() {
+        if (this.terminado) {
+            return;
+        }
+        this.terminado = true;
+        this.detenerTimer();
+        this.detenerRipples();
+        if (this.tiempoInicio !== null) {
+            this.segundos = Math.floor((Date.now() - this.tiempoInicio) / 1000);
+        }
+        this.actualizarTimer();
+        const tiempoFinal = this.formatearTiempo(this.segundos);
+        const fichasRestantes = this.modelo.contarFichasRestantes();
+        if (this.mensajeFin) {
+            this.mensajeFin.textContent = fichasRestantes === 1
+                ? '¡Excelente! Dejaste una sola ficha en el tablero.'
+                : 'No quedan más movimientos posibles.';
+        }
+        if (this.tiempoFinalElemento) {
+            this.tiempoFinalElemento.textContent = tiempoFinal;
+        }
+        if (this.menuFin) {
+            this.menuFin.hidden = false;
+        }
+        console.log("[CONTROLADOR] El juego ha finalizado. Tiempo:", tiempoFinal);
     }
 
     getCanvasCoordinates(e) { 
@@ -90,6 +220,9 @@ class Juego {
     }
 
     onMouseDown(e) { 
+        if (!this.iniciado || this.terminado) {
+            return;
+        }
         const mouse = this.getCanvasCoordinates(e); 
         for (let i = this.fichas.length - 1; i >= 0; i--) { 
             const ficha = this.fichas[i]; 
@@ -99,6 +232,9 @@ class Juego {
                 // Consultar al Modelo los movimientos posibles para mostrar hints 
                 this.movimientosSugeridos = this.modelo.obtenerMovimientosPosibles(ficha.fila, ficha.columna); 
                 console.log("[CONTROLADOR] Ficha cliqueada en:", { f: ficha.fila, c: ficha.columna }, "Movimientos posibles:", this.movimientosSugeridos);
+                if (this.movimientosSugeridos.length > 0) {
+                    this.iniciarRipples();
+                }
                 this.drawAll(); 
                 break; 
             } 
@@ -127,8 +263,7 @@ class Juego {
             const nuevoPixel = this.matrizAPixel(destinoMatriz.f, destinoMatriz.c); 
             this.fichaSeleccionada.updateInitialPosition(nuevoPixel.x, nuevoPixel.y, destinoMatriz.f, destinoMatriz.c); 
             if (this.modelo.esJuegoTerminado()) { 
-                console.log("[CONTROLADOR] El juego ha finalizado."); 
-                setTimeout(() => alert("¡Fin del Juego! No quedan más movimientos."), 100); 
+                this.finalizarJuego(); 
             } 
         } else { 
             console.log("[CONTROLADOR] Movimiento inválido. La ficha regresa a su posición original."); 
@@ -137,6 +272,7 @@ class Juego {
         this.fichaSeleccionada.estaSiendoArrastrada = false; 
         this.fichaSeleccionada = null; 
         this.movimientosSugeridos = []; 
+        this.detenerRipples();
         this.drawAll(); 
     }
 
@@ -158,6 +294,7 @@ class Juego {
     }
 
     drawHuecosYHints() { 
+        const radioBase = Math.min(this.cellWidth, this.cellHeight);
         for (let r = 0; r < 7; r++) { 
             for (let c = 0; c < 7; c++) {
                 if (this.modelo.matriz[r][c] !== undefined) { 
@@ -165,7 +302,7 @@ class Juego {
                     // Dibuja el hueco si está vacío (0) 
                     if (this.modelo.matriz[r][c] === 0) { 
                         this.ctx.beginPath(); 
-                        this.ctx.arc(pos.x, pos.y, 12, 0, 2 * Math.PI); 
+                        this.ctx.arc(pos.x, pos.y, radioBase * 0.22, 0, 2 * Math.PI); 
                         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'; 
                         this.ctx.fill(); 
                         this.ctx.closePath(); 
@@ -173,18 +310,36 @@ class Juego {
                 } 
             } 
         } 
-        // Dibujar Hints/Sugerencias de movimientos válidos 
-        this.movimientosSugeridos.forEach(dest => { 
-            const pos = this.matrizAPixel(dest.f, dest.c); 
-            this.ctx.beginPath(); 
-            this.ctx.arc(pos.x, pos.y, 18, 0, 2 * Math.PI); 
-            this.ctx.fillStyle = 'rgba(0, 255, 128, 0.7)'; 
-            this.ctx.fill(); 
-            this.ctx.strokeStyle = '#ffffff'; 
-            this.ctx.lineWidth = 2; 
-            this.ctx.stroke(); 
-            this.ctx.closePath(); 
-        }); 
+        // Dibujar Hints/Sugerencias de movimientos válidos con ondas expansivas
+        const tiempo = this.rippleInicio
+            ? (performance.now() - this.rippleInicio) / 1000
+            : 0;
+        this.movimientosSugeridos.forEach((dest, indice) => {
+            const pos = this.matrizAPixel(dest.f, dest.c);
+            const pulso = 0.5 + 0.5 * Math.sin(tiempo * 5 + indice);
+
+            this.ctx.beginPath();
+            this.ctx.arc(pos.x, pos.y, radioBase * 0.32, 0, 2 * Math.PI);
+            this.ctx.fillStyle = `rgba(0, 255, 128, ${0.2 + pulso * 0.1})`;
+            this.ctx.fill();
+            this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+            this.ctx.lineWidth = 1.5;
+            this.ctx.stroke();
+            this.ctx.closePath();
+
+            [0, 0.5].forEach(desfase => {
+                const progreso = ((tiempo / 1.2) + desfase + indice * 0.08) % 1;
+                const radio = radioBase * (0.22 + progreso * 0.36);
+                const alpha = (1 - progreso) * 0.55;
+
+                this.ctx.beginPath();
+                this.ctx.arc(pos.x, pos.y, radio, 0, 2 * Math.PI);
+                this.ctx.strokeStyle = `rgba(0, 255, 160, ${alpha})`;
+                this.ctx.lineWidth = 2.5 * (1 - progreso) + 0.5;
+                this.ctx.stroke();
+                this.ctx.closePath();
+            });
+        });
     }
     cambiarSkin(skinKey) { 
         if (this.skins[skinKey]) { 

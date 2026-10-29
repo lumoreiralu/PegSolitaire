@@ -95,9 +95,34 @@
         </a>
     </div>
     <div class="juego-canvas-wrapper">
-        <canvas id="canvas" width="600" height="600" style="border:#000 solid 1px;" willReadFrequently>
-            <p>Su navegador no soporta HTML5</p>
-        </canvas>  
+        <div class="canvas-game-area">
+            <canvas id="canvas" width="600" height="600" style="border:#000 solid 1px;" willReadFrequently>
+                <p>Su navegador no soporta HTML5</p>
+            </canvas>
+
+            <div id="game-start-menu" class="game-overlay">
+                <div class="game-menu-card">
+                    <h2 class="game-menu-title">Peg Solitaire</h2>
+                    <p class="game-menu-text">Eliminá las fichas saltando sobre ellas hasta dejar una sola en el tablero.</p>
+                    <button id="btn-play" class="btn-start" type="button">
+                        <span style="--i: 0">P</span><span style="--i: 1">l</span><span style="--i: 2">a</span><span style="--i: 3">y</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="game-end-menu" class="game-overlay" hidden>
+                <div class="game-menu-card">
+                    <h2 class="game-menu-title">¡Fin del juego!</h2>
+                    <p id="game-end-message" class="game-menu-text">No quedan más movimientos posibles.</p>
+                    <p class="game-final-time">Tiempo final: <span id="final-time">00:00</span></p>
+                    <button id="btn-replay" class="btn-start btn-replay" type="button">
+                        <span style="--i: 0">R</span><span style="--i: 1">e</span><span style="--i: 2">i</span><span style="--i: 3">n</span><span style="--i: 4">i</span><span style="--i: 5">c</span><span style="--i: 6">i</span><span style="--i: 7">a</span><span style="--i: 8">r</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="game-timer" class="game-timer" aria-live="polite">Tiempo: 00:00</div>
     </div>
 
 
@@ -176,6 +201,44 @@
                     class="btn-carrusel"></button>
             <!-- La fila que contiene los juegos y se va a recortar -->
             <div class="carrusel-track ">
+                <div class="juego-tarjeta">
+                    <img src="assets/pegPacmanPage/img1.png" alt="img1">
+                </div>
+                <div class="juego-tarjeta">
+                    <img src="assets/pegPacmanPage/img2.png" alt="img2">
+                </div>
+                <div class="juego-tarjeta">
+                    <img src="assets/pegPacmanPage/video1.png" alt="vid1">
+                </div>
+                <div class="juego-tarjeta">
+                    <img src="assets/pegPacmanPage/img3.png" alt="img3">
+                </div>
+                <div class="juego-tarjeta">
+                    <img src="assets/pegPacmanPage/img4.png" alt="img4">
+                </div>
+                <div class="juego-tarjeta">
+                    <img src="assets/pegPacmanPage/video2.png" alt="v2">
+                </div>
+                <div class="juego-tarjeta">
+                    <img src="assets/pegPacmanPage/img5.png" alt="img5">
+                </div>
+                <div class="juego-tarjeta">
+                    <img src="assets/pegPacmanPage/img6.png" alt="img6">
+                </div>
+                <div class="juego-tarjeta">
+                    <img src="assets/pegPacmanPage/img7.png" alt="img7">
+                </div>
+                <div class="juego-tarjeta">
+                    <img src="assets/pegPacmanPage/video3.png" alt="vid3">
+
+                </div>
+                <div class="juego-tarjeta">
+                    <img src="assets/pegPacmanPage/img8.png" alt="img8">
+                </div>
+                <div class="juego-tarjeta">
+                    <img src="assets/pegPacmanPage/img9.png" alt="img9">
+
+                </div>
                 <div class="juego-tarjeta">
                     <img src="assets/pegPacmanPage/img1.png" alt="img1">
                 </div>
