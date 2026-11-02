@@ -24,12 +24,14 @@ class Juego {
         this.tiempoFinalElemento = document.getElementById('final-time');
         this.btnPlay = document.getElementById('btn-play');
         this.btnReplay = document.getElementById('btn-replay');
+        this.btnRestart = document.getElementById('btn-restart');
 
         this.iniciado = false;
         this.terminado = false;
-        this.segundos = 0;
+        this.tiempoLimiteSegundos = 180;
+        this.segundosRestantes = this.tiempoLimiteSegundos;
         this.intervaloTimer = null;
-        this.tiempoInicio = null;
+        this.tiempoFin = null;
         this.rippleInicio = 0;
         this.rippleRAF = null;
         
@@ -42,7 +44,10 @@ class Juego {
             fantasma: 'assets/fichasytablero/fantasma.png'
 
         };
-        this.currentSkinSrc = this.skins.pacman;
+        const skinSeleccionada = document.querySelector('input[name="ficha-skin"]:checked');
+        this.currentSkinSrc = skinSeleccionada && this.skins[skinSeleccionada.value]
+            ? this.skins[skinSeleccionada.value]
+            : this.skins.pacman;
         this.fichaImage = new Image();
         this.fichaImageSrc = this.currentSkinSrc;
 
@@ -95,23 +100,30 @@ class Juego {
         // mousemove y mouseup se escuchan en WINDOW para no perder el evento fuera del lienzo
         window.addEventListener('mousemove', (e) => this.onMouseMove(e)); 
         window.addEventListener('mouseup', (e) => this.onMouseUp(e));
-        // Selector de Skins/Imágenes de fichas 
-        const skinSelector = document.getElementById('skin-select');
-        if (skinSelector) { 
-            skinSelector.addEventListener('change', (e) => this.cambiarSkin(e.target.value)); 
-        } 
+        // Selector de skins en la pantalla de inicio
+        const skinInputs = document.querySelectorAll('input[name="ficha-skin"]');
+        skinInputs.forEach(input => {
+            input.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    this.cambiarSkin(e.target.value);
+                }
+            });
+        });
         if (this.btnPlay) {
             this.btnPlay.addEventListener('click', () => this.iniciarJuego());
         }
         if (this.btnReplay) {
             this.btnReplay.addEventListener('click', () => this.reiniciarJuego());
         }
+        if (this.btnRestart) {
+            this.btnRestart.addEventListener('click', () => this.reiniciarJuego());
+        }
     }
 
     iniciarJuego() {
         this.iniciado = true;
         this.terminado = false;
-        this.segundos = 0;
+        this.segundosRestantes = this.tiempoLimiteSegundos;
         this.actualizarTimer();
         if (this.menuInicio) {
             this.menuInicio.hidden = true;
@@ -119,15 +131,16 @@ class Juego {
         if (this.menuFin) {
             this.menuFin.hidden = true;
         }
+        if (this.btnRestart) {
+            this.btnRestart.hidden = false;
+        }
         this.iniciarTimer();
     }
 
     reiniciarJuego() {
         this.detenerTimer();
-        this.detenerRipples();
+        this.cancelarSeleccion();
         this.modelo.reset();
-        this.fichaSeleccionada = null;
-        this.movimientosSugeridos = [];
         this.inicializarFichasDesdeModelo();
         this.drawAll();
         this.iniciarJuego();
@@ -135,11 +148,22 @@ class Juego {
 
     iniciarTimer() {
         this.detenerTimer();
-        this.tiempoInicio = Date.now();
-        this.intervaloTimer = setInterval(() => {
-            this.segundos = Math.floor((Date.now() - this.tiempoInicio) / 1000);
-            this.actualizarTimer();
-        }, 1000);
+        this.tiempoFin = Date.now() + this.segundosRestantes * 1000;
+        this.intervaloTimer = setInterval(() => this.actualizarTiempoRestante(), 250);
+    }
+
+    actualizarTiempoRestante() {
+        if (this.tiempoFin === null || this.terminado) {
+            return;
+        }
+        this.segundosRestantes = Math.max(0, Math.ceil((this.tiempoFin - Date.now()) / 1000));
+        this.actualizarTimer();
+        if (this.segundosRestantes === 0) {
+            this.detenerTimer();
+            this.cancelarSeleccion();
+            this.finalizarJuego('tiempo');
+            this.drawAll();
+        }
     }
 
     detenerTimer() {
@@ -151,8 +175,23 @@ class Juego {
 
     actualizarTimer() {
         if (this.timerElemento) {
-            this.timerElemento.textContent = `Tiempo: ${this.formatearTiempo(this.segundos)}`;
+            const texto = `Tiempo restante: ${this.formatearTiempo(this.segundosRestantes)}`;
+            if (this.timerElemento.textContent !== texto) {
+                this.timerElemento.textContent = texto;
+            }
+            const enAdvertencia = this.iniciado && !this.terminado && this.segundosRestantes <= 30;
+            this.timerElemento.classList.toggle('game-timer-warning', enAdvertencia);
         }
+    }
+
+    cancelarSeleccion() {
+        if (this.fichaSeleccionada) {
+            this.fichaSeleccionada.estaSiendoArrastrada = false;
+            this.fichaSeleccionada.resetPosition();
+        }
+        this.fichaSeleccionada = null;
+        this.movimientosSugeridos = [];
+        this.detenerRipples();
     }
 
     formatearTiempo(segundos) {
@@ -184,23 +223,24 @@ class Juego {
         }
     }
 
-    finalizarJuego() {
+    finalizarJuego(motivo = 'fin') {
         if (this.terminado) {
             return;
         }
         this.terminado = true;
         this.detenerTimer();
         this.detenerRipples();
-        if (this.tiempoInicio !== null) {
-            this.segundos = Math.floor((Date.now() - this.tiempoInicio) / 1000);
-        }
         this.actualizarTimer();
-        const tiempoFinal = this.formatearTiempo(this.segundos);
+        const tiempoFinal = this.formatearTiempo(this.segundosRestantes);
         const fichasRestantes = this.modelo.contarFichasRestantes();
         if (this.mensajeFin) {
-            this.mensajeFin.textContent = fichasRestantes === 1
-                ? '¡Excelente! Dejaste una sola ficha en el tablero.'
-                : 'No quedan más movimientos posibles.';
+            if (motivo === 'tiempo') {
+                this.mensajeFin.textContent = '¡Se acabó el tiempo!';
+            } else if (fichasRestantes === 1) {
+                this.mensajeFin.textContent = '¡Excelente! Dejaste una sola ficha en el tablero.';
+            } else {
+                this.mensajeFin.textContent = 'No quedan más movimientos posibles.';
+            }
         }
         if (this.tiempoFinalElemento) {
             this.tiempoFinalElemento.textContent = tiempoFinal;
@@ -208,7 +248,10 @@ class Juego {
         if (this.menuFin) {
             this.menuFin.hidden = false;
         }
-        console.log("[CONTROLADOR] El juego ha finalizado. Tiempo:", tiempoFinal);
+        if (this.btnRestart) {
+            this.btnRestart.hidden = true;
+        }
+        console.log("[CONTROLADOR] El juego ha finalizado. Motivo:", motivo, "Tiempo restante:", tiempoFinal);
     }
 
     getCanvasCoordinates(e) { 
@@ -251,6 +294,11 @@ class Juego {
     onMouseUp(e) { 
         if (!this.fichaSeleccionada || !this.fichaSeleccionada.estaSiendoArrastrada) 
             return; 
+        if (this.terminado) {
+            this.cancelarSeleccion();
+            this.drawAll();
+            return;
+        }
         const mouse = this.getCanvasCoordinates(e); 
         const destinoMatriz = this.pixelAMatriz(mouse.x, mouse.y); 
         const origenMatriz = { 
@@ -342,14 +390,21 @@ class Juego {
         });
     }
     cambiarSkin(skinKey) { 
-        if (this.skins[skinKey]) { 
-            this.currentSkinSrc = this.skins[skinKey]; 
-            this.fichaImage = new Image(); 
-            this.fichaImage.src = this.currentSkinSrc; 
-            this.fichaImage.onload = () => { 
-                this.fichas.forEach(f => f.imagen = this.fichaImage); 
-                this.drawAll(); 
-            }; 
-        } 
+        const skinSrc = this.skins[skinKey];
+        if (!skinSrc) {
+            return;
+        }
+        this.currentSkinSrc = skinSrc;
+        this.fichaImageSrc = skinSrc;
+        const imagen = new Image();
+        this.fichaImage = imagen;
+        imagen.onload = () => {
+            if (this.currentSkinSrc !== skinSrc) {
+                return;
+            }
+            this.fichas.forEach(f => f.imagen = imagen);
+            this.drawAll();
+        };
+        imagen.src = skinSrc;
     }
 }

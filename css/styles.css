@@ -421,6 +421,7 @@ body{
 
 
 .juego-canvas-wrapper {
+  --game-max-size: clamp(320px, calc(100vh - 200px), 760px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -428,10 +429,16 @@ body{
   width: 100%;
 }
 
+@supports (height: 100dvh) {
+  .juego-canvas-wrapper {
+    --game-max-size: clamp(320px, calc(100dvh - 200px), 760px);
+  }
+}
+
 #canvas {
   display: block;
   width: 100%;
-  max-width: 760px;
+  max-width: var(--game-max-size);
   height: auto;
   box-sizing: border-box;
 }
@@ -440,7 +447,7 @@ body{
 .canvas-game-area {
   position: relative;
   width: 100%;
-  max-width: 760px;
+  max-width: var(--game-max-size);
 }
 
 .game-overlay {
@@ -501,6 +508,85 @@ body{
   color: #00e5ff;
 }
 
+.game-skin-picker {
+  width: 100%;
+  min-width: 0;
+  margin: 0 0 22px;
+  padding: 0;
+  border: 0;
+}
+
+.game-skin-picker legend {
+  padding: 0;
+  margin-bottom: 10px;
+  color: #f0d58a;
+  font-size: clamp(0.85rem, 2.2vw, 0.95rem);
+  font-weight: 600;
+}
+
+.game-skin-options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.game-skin-option {
+  position: relative;
+  flex: 0 1 120px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.game-skin-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.game-skin-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  background-color: #101225;
+  border: 2px solid #222644;
+  border-radius: 16px;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+
+.game-skin-card img {
+  display: block;
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.game-skin-card > span {
+  color: #f0d58a;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.game-skin-option:hover .game-skin-card {
+  border-color: rgba(189, 141, 47, 0.7);
+  transform: translateY(-2px);
+}
+
+.game-skin-option input:checked + .game-skin-card {
+  border-color: #00e5ff;
+  box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.25), 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.game-skin-option input:focus-visible + .game-skin-card {
+  outline: 2px solid #f0d58a;
+  outline-offset: 2px;
+}
+
 .game-menu-card .btn-start {
   width: min(325px, 100%);
   height: auto;
@@ -516,6 +602,14 @@ body{
   padding: 16px 22px 16px 28px;
 }
 
+.game-hud {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
 .game-timer {
   padding: 8px 22px;
   color: #f0d58a;
@@ -526,4 +620,43 @@ body{
   background-color: #090b14;
   border: 1px solid #222644;
   border-radius: 10px;
+}
+
+.game-timer.game-timer-warning {
+  color: #ff6b6b;
+  border-color: rgba(255, 107, 107, 0.65);
+  animation: game-timer-pulse 1s ease-in-out infinite;
+}
+
+.game-restart-btn {
+  padding: 8px 18px;
+  color: #f0d58a;
+  font-family: 'Nunito', sans-serif;
+  font-size: clamp(0.95rem, 2.5vw, 1.05rem);
+  font-weight: 600;
+  background-color: #090b14;
+  border: 1px solid #bd8d2f;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background-color 0.2s;
+}
+
+.game-restart-btn:hover {
+  color: #00e5ff;
+  border-color: #00e5ff;
+  background-color: #101225;
+}
+
+.game-restart-btn:focus-visible {
+  outline: 2px solid #f0d58a;
+  outline-offset: 2px;
+}
+
+@keyframes game-timer-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
 }
