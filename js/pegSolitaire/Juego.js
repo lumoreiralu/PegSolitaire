@@ -1,4 +1,13 @@
+/**
+ * Clase principal que gestiona el flujo del juego (tablero, fichas, renderizado, 
+ * eventos de interacción, temporizador y menús de interfaz).
+ */
 class Juego { 
+    /**
+     * Crea una instancia del Juego.
+     * 
+     * @param {string} canvasId - ID del elemento <canvas> en el DOM donde se renderizará el juego.
+     */
     constructor(canvasId) { 
         this.canvas = document.getElementById(canvasId); 
         this.ctx = this.canvas.getContext('2d'); 
@@ -42,12 +51,13 @@ class Juego {
         this.skins = {
             pacman: 'assets/fichasytablero/pacman.png',
             fantasma: 'assets/fichasytablero/fantasma.png'
-
         };
+        
         const skinSeleccionada = document.querySelector('input[name="ficha-skin"]:checked');
         this.currentSkinSrc = skinSeleccionada && this.skins[skinSeleccionada.value]
             ? this.skins[skinSeleccionada.value]
             : this.skins.pacman;
+            
         this.fichaImage = new Image();
         this.fichaImageSrc = this.currentSkinSrc;
 
@@ -61,29 +71,43 @@ class Juego {
         this.initEvents();
     }
 
-    //traduce coordenadas en pixeles(x,y) a celda de la matrix {f,c}
-    pixelAMatriz(x,y){
+    /**
+     * Traduce coordenadas en píxeles (x, y) a una posición de celda en la matriz {f, c}.
+     * 
+     * @param {number} x - Coordenada X en píxeles.
+     * @param {number} y - Coordenada Y en píxeles.
+     * @returns {{f: number, c: number}|null} Objeto con fila y columna, o null si está fuera de rango.
+     */
+    pixelAMatriz(x, y) {
         const c = Math.floor((x - this.offsetX) / this.cellWidth);
         const f = Math.floor((y - this.offsetY) / this.cellHeight);
-        if(f>=0 && f <7 && c>=0 && c<7){
-            return {f,c};
-    
+        if (f >= 0 && f < 7 && c >= 0 && c < 7) {
+            return { f, c };
         }
         return null;
     }
 
-    //traduce celda de la matriz{f,c} a coordenadas del centro en pixeles
-    matrizAPixel(f,c){
-        return{
+    /**
+     * Traduce una celda de la matriz {f, c} a las coordenadas centrales en píxeles del canvas.
+     * 
+     * @param {number} f - Índice de la fila.
+     * @param {number} c - Índice de la columna.
+     * @returns {{x: number, y: number}} Coordenadas centrales en píxeles.
+     */
+    matrizAPixel(f, c) {
+        return {
             x: this.offsetX + c * this.cellWidth + this.cellWidth / 2, 
             y: this.offsetY + f * this.cellHeight + this.cellHeight / 2
-        }
+        };
     }
 
+    /**
+     * Inicializa y sincroniza la lista de objetos `Ficha` basándose en el estado de la matriz del modelo.
+     */
     inicializarFichasDesdeModelo() { 
         this.fichas = []; 
         const radio = Math.min(this.cellWidth, this.cellHeight) * 0.3; 
-        for (let r = 0; r <7; r++) { 
+        for (let r = 0; r < 7; r++) { 
             for (let c = 0; c < 7; c++) { 
                 if (this.modelo.matriz[r][c] === 1) { 
                     const posPixel = this.matrizAPixel(r, c); 
@@ -94,13 +118,14 @@ class Juego {
         } 
     }
 
+    /**
+     * Configura y registra los listeners de eventos para el canvas, botones y selector de skins.
+     */
     initEvents() { 
-        // mousedown se escucha en el Canvas 
         this.canvas.addEventListener('mousedown', (e) => this.onMouseDown(e)); 
-        // mousemove y mouseup se escuchan en WINDOW para no perder el evento fuera del lienzo
         window.addEventListener('mousemove', (e) => this.onMouseMove(e)); 
         window.addEventListener('mouseup', (e) => this.onMouseUp(e));
-        // Selector de skins en la pantalla de inicio
+
         const skinInputs = document.querySelectorAll('input[name="ficha-skin"]');
         skinInputs.forEach(input => {
             input.addEventListener('change', (e) => {
@@ -109,6 +134,7 @@ class Juego {
                 }
             });
         });
+
         if (this.btnPlay) {
             this.btnPlay.addEventListener('click', () => this.iniciarJuego());
         }
@@ -120,6 +146,9 @@ class Juego {
         }
     }
 
+    /**
+     * Inicia o reanuda la partida, ocultando menús y activando el temporizador.
+     */
     iniciarJuego() {
         this.iniciado = true;
         this.terminado = false;
@@ -137,6 +166,9 @@ class Juego {
         this.iniciarTimer();
     }
 
+    /**
+     * Reinicia por completo el estado del juego, el tablero y el tiempo.
+     */
     reiniciarJuego() {
         this.detenerTimer();
         this.cancelarSeleccion();
@@ -146,12 +178,18 @@ class Juego {
         this.iniciarJuego();
     }
 
+    /**
+     * Inicia el intervalo del temporizador de la partida.
+     */
     iniciarTimer() {
         this.detenerTimer();
         this.tiempoFin = Date.now() + this.segundosRestantes * 1000;
         this.intervaloTimer = setInterval(() => this.actualizarTiempoRestante(), 250);
     }
 
+    /**
+     * Actualiza los segundos restantes basándose en el tiempo actual del sistema.
+     */
     actualizarTiempoRestante() {
         if (this.tiempoFin === null || this.terminado) {
             return;
@@ -166,6 +204,9 @@ class Juego {
         }
     }
 
+    /**
+     * Detiene el intervalo del temporizador activo.
+     */
     detenerTimer() {
         if (this.intervaloTimer) {
             clearInterval(this.intervaloTimer);
@@ -173,6 +214,9 @@ class Juego {
         }
     }
 
+    /**
+     * Actualiza la representación visual del temporizador en el DOM y gestiona alertas de tiempo bajo.
+     */
     actualizarTimer() {
         if (this.timerElemento) {
             const texto = `Tiempo restante: ${this.formatearTiempo(this.segundosRestantes)}`;
@@ -184,6 +228,9 @@ class Juego {
         }
     }
 
+    /**
+     * Cancela la selección actual de la ficha y la devuelve a su posición original.
+     */
     cancelarSeleccion() {
         if (this.fichaSeleccionada) {
             this.fichaSeleccionada.estaSiendoArrastrada = false;
@@ -194,12 +241,21 @@ class Juego {
         this.detenerRipples();
     }
 
+    /**
+     * Formatea una cantidad de segundos a formato de texto "MM:SS".
+     * 
+     * @param {number} segundos - Segundos totales.
+     * @returns {string} Tiempo formateado.
+     */
     formatearTiempo(segundos) {
         const minutos = Math.floor(segundos / 60).toString().padStart(2, '0');
         const resto = (segundos % 60).toString().padStart(2, '0');
         return `${minutos}:${resto}`;
     }
 
+    /**
+     * Inicia la animación de ondas expansivas (ripples) para los movimientos sugeridos.
+     */
     iniciarRipples() {
         this.rippleInicio = performance.now();
         if (this.rippleRAF !== null) {
@@ -216,6 +272,9 @@ class Juego {
         this.rippleRAF = requestAnimationFrame(animar);
     }
 
+    /**
+     * Detiene la animación de ondas expansivas.
+     */
     detenerRipples() {
         if (this.rippleRAF !== null) {
             cancelAnimationFrame(this.rippleRAF);
@@ -223,6 +282,11 @@ class Juego {
         }
     }
 
+    /**
+     * Finaliza la partida actual, mostrando el menú final y deteniendo interacciones.
+     * 
+     * @param {string} [motivo='fin'] - Motivo de finalización ('tiempo' u otro).
+     */
     finalizarJuego(motivo = 'fin') {
         if (this.terminado) {
             return;
@@ -233,6 +297,7 @@ class Juego {
         this.actualizarTimer();
         const tiempoFinal = this.formatearTiempo(this.segundosRestantes);
         const fichasRestantes = this.modelo.contarFichasRestantes();
+        
         if (this.mensajeFin) {
             if (motivo === 'tiempo') {
                 this.mensajeFin.textContent = '¡Se acabó el tiempo!';
@@ -254,6 +319,12 @@ class Juego {
         console.log("[CONTROLADOR] El juego ha finalizado. Motivo:", motivo, "Tiempo restante:", tiempoFinal);
     }
 
+    /**
+     * Obtiene las coordenadas relativas del cursor dentro del canvas escalado.
+     * 
+     * @param {MouseEvent} e - Evento del mouse.
+     * @returns {{x: number, y: number}} Coordenadas escaladas (x, y).
+     */
     getCanvasCoordinates(e) { 
         const rect = this.canvas.getBoundingClientRect(); 
         return {
@@ -262,6 +333,11 @@ class Juego {
         }; 
     }
 
+    /**
+     * Maneja el evento de presión del botón del mouse (`mousedown`) para seleccionar fichas.
+     * 
+     * @param {MouseEvent} e - Evento del mouse.
+     */
     onMouseDown(e) { 
         if (!this.iniciado || this.terminado) {
             return;
@@ -272,7 +348,6 @@ class Juego {
             if (ficha.isPointInside(mouse.x, mouse.y)) { 
                 this.fichaSeleccionada = ficha; 
                 this.fichaSeleccionada.estaSiendoArrastrada = true; 
-                // Consultar al Modelo los movimientos posibles para mostrar hints 
                 this.movimientosSugeridos = this.modelo.obtenerMovimientosPosibles(ficha.fila, ficha.columna); 
                 console.log("[CONTROLADOR] Ficha cliqueada en:", { f: ficha.fila, c: ficha.columna }, "Movimientos posibles:", this.movimientosSugeridos);
                 if (this.movimientosSugeridos.length > 0) {
@@ -283,6 +358,12 @@ class Juego {
             } 
         } 
     }
+
+    /**
+     * Maneja el movimiento del mouse (`mousemove`) para actualizar la posición de la ficha arrastrada.
+     * 
+     * @param {MouseEvent} e - Evento del mouse.
+     */
     onMouseMove(e) { 
         if (this.fichaSeleccionada && this.fichaSeleccionada.estaSiendoArrastrada) { 
             const mouse = this.getCanvasCoordinates(e); 
@@ -291,6 +372,11 @@ class Juego {
         } 
     }
 
+    /**
+     * Maneja la liberación del botón del mouse (`mouseup`) para validar y ejecutar movimientos en el tablero.
+     * 
+     * @param {MouseEvent} e - Evento del mouse.
+     */
     onMouseUp(e) { 
         if (!this.fichaSeleccionada || !this.fichaSeleccionada.estaSiendoArrastrada) 
             return; 
@@ -305,6 +391,7 @@ class Juego {
             f: this.fichaSeleccionada.fila, 
             c: this.fichaSeleccionada.columna 
         }; 
+
         if (destinoMatriz && this.modelo.esMovimientoValido(origenMatriz, destinoMatriz)) {
             const fichaComidaCoords = this.modelo.ejecutarMovimiento(origenMatriz, destinoMatriz); 
             this.fichas = this.fichas.filter(f => !(f.fila === fichaComidaCoords.f && f.columna === fichaComidaCoords.c));
@@ -324,30 +411,35 @@ class Juego {
         this.drawAll(); 
     }
 
+    /**
+     * Limpia el canvas y redibuja todos los elementos visuales (fondo, huecos, hints y fichas).
+     */
     drawAll() { 
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-         // Dibujar Fondo (manejado por la Vista) 
-         if (this.bgImage.complete) { 
+        
+        if (this.bgImage.complete) { 
             this.ctx.drawImage(this.bgImage, 0, 0, this.canvas.width, this.canvas.height); 
         } 
-        //Dibujar Huecos (donde la matriz es 0 o 1) y Hints 
+        
         this.drawHuecosYHints(); 
-        // Dibujar Fichas Quietas 
+        
         const fichasQuietas = this.fichas.filter(f => !f.estaSiendoArrastrada); 
         fichasQuietas.forEach(f => f.draw()); 
-        //Dibujar Ficha en Movimiento 
+        
         if (this.fichaSeleccionada && this.fichaSeleccionada.estaSiendoArrastrada) { 
             this.fichaSeleccionada.draw(); 
         } 
     }
 
+    /**
+     * Dibuja los huecos vacíos del tablero y las sugerencias de movimiento (hints) con ondas dinámicas.
+     */
     drawHuecosYHints() { 
         const radioBase = Math.min(this.cellWidth, this.cellHeight);
         for (let r = 0; r < 7; r++) { 
             for (let c = 0; c < 7; c++) {
                 if (this.modelo.matriz[r][c] !== undefined) { 
                     const pos = this.matrizAPixel(r, c); 
-                    // Dibuja el hueco si está vacío (0) 
                     if (this.modelo.matriz[r][c] === 0) { 
                         this.ctx.beginPath(); 
                         this.ctx.arc(pos.x, pos.y, radioBase * 0.22, 0, 2 * Math.PI); 
@@ -358,10 +450,11 @@ class Juego {
                 } 
             } 
         } 
-        // Dibujar Hints/Sugerencias de movimientos válidos con ondas expansivas
+
         const tiempo = this.rippleInicio
             ? (performance.now() - this.rippleInicio) / 1000
             : 0;
+            
         this.movimientosSugeridos.forEach((dest, indice) => {
             const pos = this.matrizAPixel(dest.f, dest.c);
             const pulso = 0.5 + 0.5 * Math.sin(tiempo * 5 + indice);
@@ -389,6 +482,12 @@ class Juego {
             });
         });
     }
+
+    /**
+     * Cambia la apariencia (skin/imagen) de todas las fichas en tiempo de ejecución.
+     * 
+     * @param {string} skinKey - Clave identificadora de la skin ('pacman', 'fantasma', etc.).
+     */
     cambiarSkin(skinKey) { 
         const skinSrc = this.skins[skinKey];
         if (!skinSrc) {
